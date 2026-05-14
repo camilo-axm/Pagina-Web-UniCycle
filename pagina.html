@@ -1992,7 +1992,6 @@ function toggleChat() {
 // ── GOOGLE MAPS & REAL-TIME TRACKING (simulado) ──
 const GOOGLE_MAPS_API_KEY = '';
 let map, stationMarkers = {}, bikeMarkers = {}, bikeInfoWindows = {}, liveTracking = false, simMapInterval = null, followedBikeId = null;
-let qrLibraryPromise = null;
 
 function showMapFallback(message) {
   const gmap = document.getElementById('gmap');
@@ -2005,29 +2004,6 @@ function showMapFallback(message) {
         <div style="font-size:13px;color:var(--muted);line-height:1.5;">${message}</div>
       </div>
     </div>`;
-}
-
-function ensureQRCodeLibrary() {
-  if (window.QRCode) return Promise.resolve();
-  if (!qrLibraryPromise) {
-    qrLibraryPromise = new Promise((resolve, reject) => {
-      const existing = document.querySelector('script[data-unicycle-qr]');
-      if (existing) {
-        existing.addEventListener('load', () => resolve(), { once: true });
-        existing.addEventListener('error', () => reject(new Error('No se pudo cargar la librería QR.')), { once: true });
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-      script.async = true;
-      script.defer = true;
-      script.dataset.unicycleQr = 'true';
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('No se pudo cargar la librería QR.'));
-      document.head.appendChild(script);
-    });
-  }
-  return qrLibraryPromise;
 }
 
 function initMap() {
@@ -2201,20 +2177,13 @@ async function refreshPublicQR() {
   const link = document.getElementById('authQrLink');
   if (!image || !link) return;
   link.textContent = url;
-  try {
-    await ensureQRCodeLibrary();
-    const dataUrl = await window.QRCode.toDataURL(url, {
-      width: 240,
-      margin: 1,
-      errorCorrectionLevel: 'M'
-    });
-    image.src = dataUrl;
-    image.style.display = 'block';
-  } catch (err) {
-    console.error(err);
+  const api = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(url);
+  image.src = api;
+  image.style.display = 'block';
+  image.onerror = () => {
     image.style.display = 'none';
-    link.textContent = url + ' (QR no disponible)';
-  }
+    link.textContent = url + ' (no se pudo cargar el QR)';
+  };
 }
 function copyPublicLink() {
   const url = location.href;
@@ -2224,22 +2193,14 @@ async function generateQRFromInput() {
   const url = document.getElementById('qrUrlInput').value.trim();
   if (!url) { showToast('Ingresa una URL válida para generar el QR.'); return; }
   const q = document.getElementById('qrImage');
-  try {
-    q.style.display = 'none';
-    await ensureQRCodeLibrary();
-    const dataUrl = await window.QRCode.toDataURL(url, {
-      width: 240,
-      margin: 1,
-      errorCorrectionLevel: 'M'
-    });
-    q.src = dataUrl;
-    q.style.display = 'inline-block';
-  } catch (err) {
-    console.error(err);
+  q.style.display = 'none';
+  q.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(url);
+  q.style.display = 'inline-block';
+  q.onerror = () => {
     q.removeAttribute('src');
     q.style.display = 'none';
     showToast('No se pudo generar el QR. Revisa tu conexión e intenta de nuevo.');
-  }
+  };
 }
 function copyQRLink() {
   const url = document.getElementById('qrUrlInput').value.trim();
