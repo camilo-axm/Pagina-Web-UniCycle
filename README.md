@@ -212,7 +212,6 @@ Possible future enhancements include:
 
 Add screenshots of the application here.
 
-```
 /screenshots/login.png
 <img width="1365" height="600" alt="image" src="https://github.com/user-attachments/assets/0fed3674-8df0-4fc5-813f-0ff2b4a1acef" />
 
@@ -236,7 +235,7 @@ Add screenshots of the application here.
 /screenshots/chatbot.png
 <img width="426" height="574" alt="image" src="https://github.com/user-attachments/assets/40d4bc68-2ae9-4f34-9365-b09ec9691d60" />
 
-```
+
 
 ---
 
